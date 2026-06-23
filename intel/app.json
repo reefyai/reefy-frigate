@@ -1,0 +1,47 @@
+{
+  "slug": "frigate-intel",
+  "version": "2026.06.23-00",
+  "name": "Frigate NVR (Intel GPU)",
+  "icon": "/static/icons/frigate.png",
+  "description": "Real-time AI object detection for IP cameras with Intel VAAPI and OpenVINO acceleration",
+  "image": "ghcr.io/blakeblackshear/frigate:0.17.0",
+  "default_port": 5000,
+  "volumes": {
+    "config": {
+      "mount": "/config",
+      "uid": 0,
+      "backup": [
+        "borgbase"
+      ]
+    },
+    "media": {
+      "mount": "/media/frigate",
+      "uid": 0,
+      "backup": [
+        "nas"
+      ]
+    },
+    "models": {
+      "mount": "/models",
+      "uid": 0,
+      "backup": []
+    }
+  },
+  "files": [
+    {
+      "url": "https://cdn.reefy.ai/models/frigate/yolo_nas_s.onnx",
+      "path": "/models/yolo_nas_s.onnx"
+    }
+  ],
+  "env": {
+    "LIBVA_DRIVER_NAME": "iHD"
+  },
+  "devices": [
+    "/dev/dri:/dev/dri"
+  ],
+  "shm_size": "512m",
+  "gpu": true,
+  "tags": [
+    "pro"
+  ]
+}
