@@ -1,8 +1,8 @@
 {
   "slug": "frigate",
-  "version": "2026.03.18-00",
+  "version": "2026.06.23-01",
   "name": "Frigate NVR (NVIDIA GPU)",
-  "icon": "/static/icons/frigate.png",
+  "icon": "icon.png",
   "description": "Real-time AI object detection for IP cameras with NVIDIA TensorRT acceleration",
   "image": "ghcr.io/blakeblackshear/frigate:0.17.0-tensorrt",
   "default_port": 5000,
