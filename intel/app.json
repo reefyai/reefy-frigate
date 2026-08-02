@@ -1,6 +1,6 @@
 {
   "slug": "frigate-intel",
-  "version": "2026.06.26-00",
+  "version": "2026.08.02-00",
   "name": "Frigate NVR (Intel GPU)",
   "icon": "icon.png",
   "description": "Real-time AI object detection for IP cameras with Intel VAAPI and OpenVINO acceleration",
@@ -38,10 +38,11 @@
     "LIBVA_DRIVER_NAME": "iHD"
   },
   "devices": [
-    "/dev/dri:/dev/dri"
+    "/dev/dri:/dev/dri",
+    "intel.com/npu=all"
   ],
   "shm_size": "512m",
-  "gpu": true,
+  "gpu": false,
   "tags": [
     "pro"
   ]
