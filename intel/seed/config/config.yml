@@ -1,7 +1,47 @@
 mqtt:
   enabled: false
 
+record:
+  enabled: true
+  alerts:
+    retain:
+      days: 3
+      mode: motion
+  detections:
+    retain:
+      days: 3
+      mode: motion
+  continuous:
+    days: 3
+  motion:
+    days: 3
+
 ffmpeg:
   hwaccel_args: preset-vaapi
 
+detectors:
+  ov:
+    type: openvino
+    device: NPU
+
+model:
+  model_type: yolonas
+  width: 320
+  height: 320
+  input_tensor: nchw
+  input_pixel_format: bgr
+  path: /models/yolo_nas_s.onnx
+  labelmap_path: /labelmap/coco-80.txt
+
+detect:
+  enabled: true
+
+objects:
+  track:
+    - person
+    - car
+    - cat
+    - dog
+
 cameras: {}
+version: 0.17-0

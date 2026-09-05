@@ -1,6 +1,6 @@
 {
   "slug": "frigate-intel",
-  "version": "v0.17.2-reefy.2026-09-05-00",
+  "version": "v0.17.2-reefy.2026-09-05-01",
   "name": "Frigate NVR (Intel GPU)",
   "icon": "icon.png",
   "description": "Real-time AI object detection for IP cameras with Intel VAAPI and OpenVINO acceleration",
