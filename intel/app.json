@@ -1,6 +1,6 @@
 {
   "slug": "frigate-intel",
-  "version": "2026.09.04-00",
+  "version": "2026.09.11-00",
   "name": "Frigate NVR (Intel GPU)",
   "icon": "icon.png",
   "description": "Real-time AI object detection for IP cameras with Intel VAAPI and OpenVINO acceleration",
@@ -12,19 +12,27 @@
       "uid": 0,
       "backup": [
         "borgbase"
-      ]
+      ],
+      "storage_class": "state"
     },
     "media": {
       "mount": "/media/frigate",
       "uid": 0,
-      "cap_pct": 90,
       "backup": [
         "nas"
-      ]
+      ],
+      "storage_class": "bulk"
     },
     "models": {
       "mount": "/models",
       "uid": 0,
+      "backup": [],
+      "storage_class": "bulk"
+    },
+    "cache": {
+      "mount": "/tmp/cache",
+      "uid": 0,
+      "storage_class": "bulk",
       "backup": []
     }
   },
