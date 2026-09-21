@@ -5,6 +5,7 @@ this checks image startup and data preservation, not GPU acceleration.
 """
 import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -96,3 +97,6 @@ version: 0.17-0
     finally:
         subprocess.run(['docker', 'logs', '--tail', '100', name], check=False)
         subprocess.run(['docker', 'rm', '-f', name], check=False)
+        # Frigate creates root-owned directories in this disposable fixture.
+        # Return only our generated temporary tree to the test runner for cleanup.
+        subprocess.run(['sudo', 'chown', '-R', f'{os.getuid()}:{os.getgid()}', str(root)], check=True)
