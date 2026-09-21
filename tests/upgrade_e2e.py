@@ -67,7 +67,7 @@ version: 0.17-0
     original_hash = hashlib.sha256(marker.read_bytes()).hexdigest()
     suffix = '-tensorrt' if variant == 'nvidia' else ''
     try:
-        for image in ('ghcr.io/blakeblackshear/frigate:0.17.0' + suffix, manifest['image']):
+        for index, image in enumerate(('ghcr.io/blakeblackshear/frigate:0.17.0' + suffix, manifest['image'])):
             docker('pull', image)
             docker('run', '-d', '--name', name, '--shm-size=256m', '-p', '127.0.0.1::5000',
                    '-v', f'{root / "config"}:/config', '-v', f'{root / "media"}:/media/frigate',
@@ -80,6 +80,16 @@ version: 0.17-0
                 assert image.split(':')[-1].split('-')[0] in response.read().decode()
             assert hashlib.sha256(marker.read_bytes()).hexdigest() == original_hash
             assert (root / 'config/frigate.db').exists()
+            if index == 0:
+                docker('exec', name, 'python3', '-c',
+                       "import sqlite3; c=sqlite3.connect('/config/frigate.db'); "
+                       "c.execute('CREATE TABLE synthetic_upgrade_marker (value TEXT)'); "
+                       "c.execute(\"INSERT INTO synthetic_upgrade_marker VALUES ('retained')\"); c.commit()")
+            else:
+                docker('exec', name, 'python3', '-c',
+                       "import sqlite3; c=sqlite3.connect('/config/frigate.db'); "
+                       "assert c.execute('SELECT value FROM synthetic_upgrade_marker').fetchone()[0]=='retained'; "
+                       "assert c.execute('PRAGMA integrity_check').fetchone()[0]=='ok'")
             docker('stop', name)
             docker('rm', name)
             print('PASS:', variant, image, 'camera config, database and persistent media preserved', flush=True)
