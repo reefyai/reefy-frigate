@@ -1,0 +1,24 @@
+name: Frigate release checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  manifests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m unittest discover -s tests -v
+  upgrade:
+    needs: manifests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [intel, nvidia]
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tests/upgrade_e2e.py ${{ matrix.variant }}
