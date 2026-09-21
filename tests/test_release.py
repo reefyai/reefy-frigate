@@ -2,6 +2,7 @@ import copy
 import json
 from pathlib import Path
 import re
+import subprocess
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -22,6 +23,14 @@ def validate(manifest, variant):
 
 
 class ReleaseTests(unittest.TestCase):
+    def test_no_downgrade_from_main(self):
+        for variant in ('intel', 'nvidia'):
+            previous = json.loads(subprocess.check_output(['git', 'show', f'origin/main:{variant}/app.json'], cwd=ROOT))
+            current = json.loads((ROOT / variant / 'app.json').read_text())
+            def upstream(image):
+                return tuple(map(int, re.search(r':(\d+)\.(\d+)\.(\d+)', image).groups()))
+            self.assertGreaterEqual(upstream(current['image']), upstream(previous['image']))
+
     def test_both_manifests_and_upgrade_contract(self):
         for variant in ('intel', 'nvidia'):
             validate(json.loads((ROOT / variant / 'app.json').read_text()), variant)
