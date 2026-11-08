@@ -39,8 +39,9 @@ class ReleaseTests(unittest.TestCase):
         for variant in ('intel', 'nvidia'):
             good = json.loads((ROOT / variant / 'app.json').read_text())
             bad = copy.deepcopy(good)
-            bad['image'] = bad['image'].replace('0.17.2', '0.17.0')
-            bad['version'] = '2026.09.13-00'
+            suffix = '-tensorrt' if variant == 'nvidia' else ''
+            bad['image'] = 'ghcr.io/blakeblackshear/frigate:0.17.0' + suffix
+            bad['version'] = 'v0.17.0-reefy.2026-01-01-00'
             with self.assertRaises(AssertionError): validate(bad, variant)
             bad = copy.deepcopy(good)
             bad['version'] = '2026.01.01-00'
