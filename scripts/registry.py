@@ -7,7 +7,7 @@ import urllib.parse
 import urllib.request
 
 PACKAGE='reefyai/reefy-frigate'
-ACCEPT='application/vnd.docker.distribution.manifest.v2+json, application/vnd.oci.image.manifest.v1+json'
+ACCEPT='application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.list.v2+json, application/vnd.docker.distribution.manifest.v2+json, application/vnd.oci.image.manifest.v1+json'
 
 class Registry:
     def __init__(self,write=False):
@@ -34,6 +34,10 @@ class Registry:
 
     def labels(self,raw):
         manifest=json.loads(raw)
+        if 'manifests' in manifest:
+            image=self.manifest(amd64_image(manifest)['digest'])
+            if not image:raise ValueError('Candidate platform manifest missing')
+            manifest=json.loads(image[0])
         with self.request('blobs/'+manifest['config']['digest']) as r:config=json.load(r)
         return config['config'].get('Labels',{})
 
@@ -43,3 +47,10 @@ def verify_labels(labels,source,manifest,base):
               'org.opencontainers.image.base.name':base['image'],'org.opencontainers.image.base.digest':base['digest']}
     for key,value in expected.items():
         if labels.get(key)!=value:raise ValueError('Candidate provenance mismatch: '+key)
+
+
+def amd64_image(index):
+    images=[item for item in index['manifests'] if item.get('platform',{}).get('os')!='unknown']
+    if len(images)!=1 or images[0].get('platform')!={'architecture':'amd64','os':'linux'}:
+        raise ValueError('Only the qualified linux/amd64 image may be promoted')
+    return images[0]

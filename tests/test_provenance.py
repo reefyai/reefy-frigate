@@ -14,3 +14,12 @@ class ReleaseProvenance(unittest.TestCase):
         for key in labels:
             wrong=copy.deepcopy(labels);wrong[key]='different'
             with self.assertRaises(ValueError):verify_labels(wrong,source,manifest,base)
+
+class PlatformProvenance(unittest.TestCase):
+    def test_selects_qualified_image_and_preserves_attestation_index(self):
+        from registry import amd64_image
+        image={'digest':'sha256:'+'c'*64,'platform':{'architecture':'amd64','os':'linux'}}
+        attestation={'digest':'sha256:'+'d'*64,'platform':{'architecture':'unknown','os':'unknown'}}
+        self.assertEqual(amd64_image({'manifests':[image,attestation]}),image)
+        for entries in [[attestation],[image,image],[{'digest':'sha256:'+'e'*64,'platform':{'architecture':'arm64','os':'linux'}}]]:
+            with self.assertRaises(ValueError):amd64_image({'manifests':entries})
