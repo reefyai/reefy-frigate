@@ -1,0 +1,62 @@
+name: Frigate release checks
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: frigate-check-${{ github.event.pull_request.head.sha || github.sha }}
+  cancel-in-progress: false
+jobs:
+  manifests:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Linux, X64, big-bird]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - run: python3 -m unittest discover -s tests -v
+      - run: python3 scripts/validate_release.py
+  regression:
+    needs: manifests
+    runs-on: [self-hosted, Linux, X64, big-bird]
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [intel, nvidia]
+    container:
+      image: ghcr.io/reefyai/camadmiral-ci@sha256:b594314f18c7417ab93a25f58dcdf5a63c302ab63eedd8210beb4d0312453b67
+      options: --privileged --cgroupns=private
+      volumes:
+        - /var/lib/frigate-ci-docker
+    env:
+      REEFY_CI_JOB_CONTAINER: '1'
+    timeout-minutes: 45
+    steps:
+      - run: git config --system --add safe.directory "$GITHUB_WORKSPACE"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - name: Start isolated Docker lab with enforced limits
+        uses: ./.github/actions/docker-lab
+      - name: Build pinned derivative
+        run: python3 scripts/build_variant.py ${{ matrix.variant }}
+      - name: Reproduce baseline and verify bounded fixed memory
+        run: python3 tests/e2e/run_reset_memory.py ${{ matrix.variant }}
+      - name: Verify real recording and upgrade preservation
+        run: python3 tests/upgrade_e2e.py ${{ matrix.variant }}
+      - name: Publish source-addressed tested candidate
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/publish_candidate.py ${{ matrix.variant }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frigate-${{ matrix.variant }}-evidence
+          path: e2e-artifacts/
+          if-no-files-found: error

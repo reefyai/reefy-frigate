@@ -1,0 +1,26 @@
+{
+  "upstream_pr": "https://github.com/blakeblackshear/frigate/pull/24663",
+  "upstream_merge": "15da89e",
+  "source_path": "/opt/frigate/frigate/video/ffmpeg.py",
+  "before_sha256": "e726f4c4df1a57324618866ad8b3e8d48a264cacf265847cad3b7fbbcc331b0e",
+  "after_sha256": "24c2c1988f508f66d18d15ce0a2db8ecf4330aae990ba10acca17f78ad4ffd52",
+  "patch_sha256": "db9db260a603d2281faeebd9e07fab128b3d2715ed80ebe25b0fae2c2ac58b9f",
+  "replacements": [
+    {
+      "before": "    def reset_capture_thread(\n        self, terminate: bool = True, drain_output: bool = True\n    ) -> None:\n        if terminate:\n",
+      "after": "    def reset_capture_thread(self, terminate: bool = True) -> None:\n        if terminate:\n            # The capture thread keeps draining stdout, so wait() is enough here.\n            # communicate() would also buffer every frame ffmpeg writes before it\n            # exits, which can be many duplicates after a stall.\n"
+    },
+    {
+      "before": "\n                if drain_output:\n                    self.ffmpeg_detect_process.communicate(timeout=30)\n                else:\n                    self.ffmpeg_detect_process.wait(timeout=30)",
+      "after": "                self.ffmpeg_detect_process.wait(timeout=30)"
+    },
+    {
+      "before": "                if drain_output:\n                    self.ffmpeg_detect_process.communicate()\n                else:\n                    self.ffmpeg_detect_process.wait()",
+      "after": "                self.ffmpeg_detect_process.wait()"
+    },
+    {
+      "before": "self.reset_capture_thread(drain_output=False)",
+      "after": "self.reset_capture_thread()"
+    }
+  ]
+}
