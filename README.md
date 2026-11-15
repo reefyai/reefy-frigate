@@ -92,3 +92,12 @@ For the next upstream version, check whether the upstream fix is already
 included. Remove the backport once included and qualify the official image;
 do not reapply it blindly or keep a diverging full source fork. Existing
 published versions and rollback history remain immutable.
+
+The committed `tests/hardware/observe.py` collector runs inside an existing dev
+Frigate container over the operator-approved connection. It verifies live
+capture processes, inference, saved configuration identity, SQLite integrity,
+prior recording bytes and optional headless decoding. Operators retain its
+runtime output privately; real device identities and recordings do not become
+repository fixtures or public Actions artifacts. Prepend the previous private
+JSON as `BASELINE` for preservation assertions and select `DECODE = True` after
+the update. It does not modify configuration, restart services or copy media.
