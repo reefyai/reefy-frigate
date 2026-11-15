@@ -1,0 +1,14 @@
+{
+  "intel": {
+    "tag": "0.18.2",
+    "image": "ghcr.io/blakeblackshear/frigate:0.18.2",
+    "digest": "sha256:9ebab4801be69ab4ebc7f6ab1d582c859ff7412d457a3fa550056894e8444dad",
+    "source_sha256": "e726f4c4df1a57324618866ad8b3e8d48a264cacf265847cad3b7fbbcc331b0e"
+  },
+  "nvidia": {
+    "tag": "0.18.2-tensorrt",
+    "image": "ghcr.io/blakeblackshear/frigate:0.18.2-tensorrt",
+    "digest": "sha256:77cb0677de536408ae49b838b7d9f07ca8f2a5c1a598b7283d5946f509296640",
+    "source_sha256": "e726f4c4df1a57324618866ad8b3e8d48a264cacf265847cad3b7fbbcc331b0e"
+  }
+}

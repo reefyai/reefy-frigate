@@ -1,0 +1,38 @@
+name: Publish qualified Frigate release
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: Exact full commit that passed both variant release gates
+        type: string
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: frigate-publication
+  cancel-in-progress: false
+jobs:
+  promote:
+    runs-on: [self-hosted, Linux, X64, big-bird]
+    permissions:
+      contents: write
+      actions: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source }}
+          fetch-depth: 0
+      - name: Require merged source and valid package metadata
+        env:
+          RELEASE_SOURCE: ${{ inputs.source }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$RELEASE_SOURCE"
+          git merge-base --is-ancestor "$RELEASE_SOURCE" origin/main
+          python3 scripts/validate_release.py
+          python3 -m unittest discover -s tests -v
+      - name: Promote tested image digests without rebuilding
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_SOURCE: ${{ inputs.source }}
+        run: python3 scripts/promote_release.py
