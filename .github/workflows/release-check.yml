@@ -48,6 +48,8 @@ jobs:
         run: python3 scripts/build_variant.py ${{ matrix.variant }}
       - name: Reproduce baseline and verify bounded fixed memory
         run: python3 tests/e2e/run_reset_memory.py ${{ matrix.variant }}
+      - name: Reproduce reconnect subscriber growth and verify bounded recovery
+        run: python3 tests/e2e/run_reconnect_memory.py ${{ matrix.variant }}
       - name: Verify real recording and upgrade preservation
         run: python3 tests/upgrade_e2e.py ${{ matrix.variant }}
       - name: Publish source-addressed tested candidate
