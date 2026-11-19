@@ -6,6 +6,8 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / 'scripts'))
+from ci_process import run_container
 variant = sys.argv[1]
 metadata = json.loads((ROOT / 'patches/config-subscriber.json').read_text())
 manifest = json.loads((ROOT / variant / 'app.json').read_text())
@@ -29,15 +31,13 @@ for mode, image, arm in [
                                 "import hashlib; assert hashlib.sha256(open('/opt/frigate/frigate/video/ffmpeg.py','rb').read()).hexdigest()=='" + digest + "'"],
                                capture_output=True, text=True, timeout=60)
         assert check.returncode == 0, check.stderr
-        process = subprocess.run([
+        process, state = run_container([
             'docker', 'run', '--name', name, '--network=none', '--memory=768m',
             '--memory-swap=768m', '--pids-limit=128',
             '-e', 'OPENBLAS_NUM_THREADS=1', '-e', 'OMP_NUM_THREADS=1',
             '-v', f'{ROOT / "tests"}:/tests:ro', '--entrypoint', 'python3',
             image, '/tests/e2e/reconnect_memory_worker.py', arm,
-        ], capture_output=True, text=True, timeout=180)
-        state = json.loads(subprocess.check_output(
-            ['docker', 'inspect', name, '--format', '{{json .State}}'], text=True))
+        ], name, output / mode, timeout=180)
         (output / (mode + '.log')).write_text(process.stdout + process.stderr)
         rows = [json.loads(line) for line in process.stdout.splitlines() if line.startswith('{')]
         assert rows, 'No completed reconnect measurement: ' + process.stderr[-2000:]
