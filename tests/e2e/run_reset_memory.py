@@ -13,7 +13,8 @@ metadata=json.loads((ROOT/'patches/watchdog-reset.json').read_text())
 output=ROOT/'e2e-artifacts'/('reset-'+variant);output.mkdir(parents=True,exist_ok=True)
 results=[]
 for mode,image in [('baseline',lock['image']+'@'+lock['digest']),('fixed',manifest['image'])]:
-    digest=metadata['before_sha256' if mode=='baseline' else 'after_sha256']
+    digest=(metadata['before_sha256'] if mode=='baseline' else
+            json.loads((ROOT/'patches/config-subscriber.json').read_text())['after_sha256'])
     check=subprocess.run(['docker','run','--rm','--network=none','--entrypoint','python3',image,'-c',
         "import hashlib; assert hashlib.sha256(open('/opt/frigate/frigate/video/ffmpeg.py','rb').read()).hexdigest()=='"+digest+"'"],capture_output=True,text=True)
     assert check.returncode==0,check.stderr

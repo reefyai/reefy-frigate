@@ -27,6 +27,14 @@ while a stalled decoder exits. The existing 30-second termination timeout,
 force-kill, reap, and replacement behavior remain intact. This backport does
 not introduce external recovery of an already-dead capture process.
 
+The packages also apply upstream
+[24002](https://github.com/blakeblackshear/frigate/pull/24002), merge
+`6fe7d68fe7d626e03c187cab517aff54530f7155`. Reconnecting capture threads reuse
+the watchdog-maintained enabled state instead of creating redundant config
+subscribers. This prevents disconnected ZeroMQ pipe state accumulating in the
+idle main-process publisher during repeated source failures. The existing
+watchdog still applies enabled changes before stopping FFmpeg.
+
 `upstream-lock.json` pins each official amd64 base image by digest. The original
 patch and input/output file hashes are recorded under `patches/`. Builds reject
 unexpected upstream files or changed patch context. Intel retains VAAPI and
@@ -56,6 +64,15 @@ For each variant the committed checks:
 4. Boot real Frigate through 0.17.0, unmodified 0.18.2 and the derivative with
    persistent synthetic camera configuration, database markers and recordings.
    Every stage must save and decode fresh video and preserve prior media.
+5. Exercise the actual installed capture loop against a real native ZeroMQ
+   publisher in a separate process for 1,200 reconnect generations after
+   warmup. The prior published package, pinned by digest and already containing
+   the capture-reset fix, must reproduce more than 8 MiB publisher anonymous
+   growth and fail the same 4 MiB bound that the new package passes. A negative
+   control periodically publishes config on the baseline and must stay below
+   that bound. The fixture also verifies disabled/stopped capture and propagation
+   of the watchdog's shared enabled state while preserving a synthetic frame.
+   No real cameras, GPU hardware or fleet settings are involved.
 
 Commands inside the disposable Actions Docker lab:
 
@@ -63,6 +80,7 @@ Commands inside the disposable Actions Docker lab:
 python3 -m unittest discover -s tests -v
 python3 scripts/build_variant.py intel
 python3 tests/e2e/run_reset_memory.py intel
+python3 tests/e2e/run_reconnect_memory.py intel
 python3 tests/upgrade_e2e.py intel
 ```
 
