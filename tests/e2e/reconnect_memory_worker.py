@@ -17,6 +17,8 @@ import threading
 import time
 from types import SimpleNamespace
 
+sys.path.insert(0, '/opt/frigate')
+
 ITERATIONS = 1200
 WARMUP = 120
 MAX_GROWTH_KIB = 4 * 1024
@@ -164,7 +166,8 @@ def run(arm):
                 child.kill(); child.wait(timeout=5)
                 raise AssertionError('Publisher cleanup failed')
         child.stdin.close(); child.stdout.close()
-        assert child.returncode == 0, 'Publisher exited abnormally'
+        if sys.exc_info()[0] is None:
+            assert child.returncode == 0, 'Publisher exited abnormally'
 
 
 if __name__ == '__main__':
